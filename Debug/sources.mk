@@ -22,6 +22,7 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
+Application/User/Startup \
 Core/Src \
 Core/Startup \
 Drivers/CMSIS \
