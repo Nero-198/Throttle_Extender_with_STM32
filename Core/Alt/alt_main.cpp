@@ -37,7 +37,7 @@
 ADC_ChannelConfTypeDef sConfig;
 
 /*Instance*/
-gamepad gamepad;
+gamepad g_gamepad;
 /*declarattion extern Valiable*/
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
@@ -49,11 +49,11 @@ int alt_main(){
 	/* initialize ここで初期化処理等を書く  */
     for (uint8_t i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
     {
-        gamepad.gamepadHID.buttons[i] = 0;
+        g_gamepad.gamepadHID.buttons[i] = 0;
 	}
 	for (uint8_t i = 0; i < (NUM_of_ADC_12bit * 2); i++)
     {
-		gamepad.gamepadHID.axis[i] = 0;
+		g_gamepad.gamepadHID.axis[i] = 0;
     }
 
       if (HAL_ADCEx_Calibration_Start(&hadc1) !=  HAL_OK)	//ADCを自動でキャリぶれーとしてくれる？
@@ -61,7 +61,7 @@ int alt_main(){
     Error_Handler();
   }
       HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
-      gamepad.Initialize();
+      g_gamepad.Initialize();
 
 	while(1){
 		/*alt_main loop ここにメイン関数のループを書く。*/
@@ -69,30 +69,30 @@ int alt_main(){
     /*debug config  ---End point data
     printf("\033[2J");
     printf("\033[10A");
-    printf("Value: %x\r\n", gamepad.gamepadHID.buttons[0]);
-    printf("Value: %x\r\n", gamepad.gamepadHID.buttons[1]);
-    printf("Value: %x\r\n", gamepad.gamepadHID.buttons[2]);
-    printf("Value: %d\r\n", gamepad.gamepadHID.axis[0]);
-    printf("Value: %d\r\n", gamepad.gamepadHID.axis[1]);
-    printf("Value: %d\r\n", gamepad.gamepadHID.axis[2]);
-    printf("Value: %d\r\n", gamepad.gamepadHID.axis[3]);
+    printf("Value: %x\r\n", g_gamepad.gamepadHID.buttons[0]);
+    printf("Value: %x\r\n", g_gamepad.gamepadHID.buttons[1]);
+    printf("Value: %x\r\n", g_gamepad.gamepadHID.buttons[2]);
+    printf("Value: %d\r\n", g_gamepad.gamepadHID.axis[0]);
+    printf("Value: %d\r\n", g_gamepad.gamepadHID.axis[1]);
+    printf("Value: %d\r\n", g_gamepad.gamepadHID.axis[2]);
+    printf("Value: %d\r\n", g_gamepad.gamepadHID.axis[3]);
     */
    //キャリブレーション開始操作。ボタンを押すとキャリブレーションが始まる。
-    if (HAL_GPIO_ReadPin(TDC_Calibrate_GPIO_Port,TDC_Calibrate_Pin) == GPIO_PIN_RESET)
+    if (HAL_GPIO_ReadPin(TDC_CALBRATION_GPIO_Port, TDC_CALBRATION_Pin) == GPIO_PIN_RESET)
     {
     	HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
     	printf("Calibrate Start\r\n");
-        gamepad.ADCcalibrate();
-        gamepad.Initialize();
+        g_gamepad.ADCcalibrate();
+        g_gamepad.Initialize();
         HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
     }
     /*dataゲット*/
-    gamepad.readButtons();
+    g_gamepad.readButtons();
     //printf("Read Buttons\r\n");
-    gamepad.readAxis();
+    g_gamepad.readAxis();
     //printf("Read Axis\r\n");
 		/*USB送信*/
-        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &gamepad.gamepadHID.buttons[0], CUSTOM_HID_EPIN_SIZE);  //buttonsとaxisを別々に送信して良いのかは怪しい。
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &g_gamepad.gamepadHID.buttons[0], CUSTOM_HID_EPIN_SIZE);  //buttonsとaxisを別々に送信して良いのかは怪しい。
     //printf("Send USB\r\n");
 	}
 }
@@ -100,7 +100,7 @@ int alt_main(){
 /* func */
 /*
  * //printf用 printfの内部でこの処理が要る。参考:https://yukblog.net/stm32cubeide-printf-uart/
- *
+ *今回はUSBデバッグ用
  */
 int _write(int file, char *ptr, int len)
 {

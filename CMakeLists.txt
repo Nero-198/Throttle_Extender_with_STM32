@@ -28,8 +28,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
-# Enable CMake support for ASM and C languages
-enable_language(C ASM)
+# Enable CMake support for ASM, C and C++ languages
+enable_language(C CXX ASM)
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
@@ -50,6 +50,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Alt
 )
 
 # Add project symbols (macros)
@@ -65,4 +66,19 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 
     # Add user defined libraries
+)
+
+
+# 追加：ユーザ側の C++ ソースを実行ファイルに登録
+#  ※ Core/Src や USB_DEVICE/App 等は、すでに `add_subdirectory(cmake/stm32cubemx)`
+#    でライブラリ側に入っている想定なので “ここでは” 触れません。
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    Core/Alt/alt_main.cpp
+    Core/Alt/flash_rom.cpp
+    Core/Alt/gamepad.cpp
+)
+
+# 追加（任意）：C++だけサイズ削減フラグを合わせる
+target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions -fno-rtti -fno-use-cxa-atexit>
 )

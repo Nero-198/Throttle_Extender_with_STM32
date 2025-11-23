@@ -18,6 +18,13 @@
             }
         },
         {
+            "name": "DebugSize",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "DebugSize"
+            }
+        },
+        {
             "name": "Release",
             "inherits": "default",
             "cacheVariables": {
@@ -29,6 +36,10 @@
         {
             "name": "Debug",
             "configurePreset": "Debug"
+        },
+        {
+            "name": "DebugSize",
+            "configurePreset": "DebugSize"
         },
         {
             "name": "Release",

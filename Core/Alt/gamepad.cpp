@@ -244,7 +244,7 @@ int gamepad::ADCcalibrate()
     ADCcal[1].ADC_min = 0;
     flash_rom.erase(0x08007c00, 0x0400); //キャリブレーション値を消去する。
 
-    while (HAL_GPIO_ReadPin(TDC_Calibrate_GPIO_Port,TDC_Calibrate_Pin) == GPIO_PIN_RESET)
+    while (HAL_GPIO_ReadPin(TDC_CALBRATION_GPIO_Port,TDC_CALBRATION_Pin) == GPIO_PIN_RESET)
     {
         int32_t ADCval[] = {(((int32_t)(gamepad::ADC_read(&hadc1) << 4)) - 0x8000), (((int32_t)(gamepad::ADC_read(&hadc2) << 4)) - 0x8000)};  //FIXME, ADCが2個である事を前提としている。
         ADCval[0] = ADCval[0] - ADCcal[0].ADC_center;
