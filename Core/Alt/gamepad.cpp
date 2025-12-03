@@ -219,42 +219,32 @@ void gamepad::readAxis() //ADCの値をgamepadHID.axisに格納する関数。AD
 int gamepad::ADCcalibrate()
 {
     uint8_t fanc_err_status = 0;
-    //uint32_t status = 0;
-    //status = FLASH_If_Erase(11, 11);  //FIXME: ADCcalibration機能を先に完成させる。保存動作は後。
+    int32_t ADCmax[NUM_of_ADC_12bit]= {0};
+    int32_t ADCmin[NUM_of_ADC_12bit]= {0};
     for (int i = 0; i < NUM_of_ADC_12bit; i++)
     {
-        gamepadHID.axis[i].cal_center = 0;
+        gamepadHID.axis[i].cal_center = (uint16_t)(ADC_DMA_val[i] << 4); //中心値だけは初回に設定しておく。
+        gamepadHID.axis[i].cal_pos_coeficient = 0.0f;
+        gamepadHID.axis[i].cal_neg_coeficient = 0.0f;
     }
-    
-    ADCcal[0].ADC_center = ((int32_t)(gamepad::ADC_read(&hadc1) << 4)) - 0x8000;
-    ADCcal[1].ADC_center = ((int32_t)(gamepad::ADC_read(&hadc2) << 4)) - 0x8000;
-    ADCcal[0].ADC_max = 0;
-    ADCcal[1].ADC_max = 0;
-    ADCcal[0].ADC_min = 0;
-    ADCcal[1].ADC_min = 0;
     flash_rom.erase(0x08007c00, 0x0400); //キャリブレーション値を消去する。
 
+//calibrationスイッチが押されている間、ADCの最大値と最小値を取得する。
     while (HAL_GPIO_ReadPin(TDC_CALBRATION_GPIO_Port,TDC_CALBRATION_Pin) == GPIO_PIN_RESET)
     {
-        int32_t ADCval[] = {(((int32_t)(gamepad::ADC_read(&hadc1) << 4)) - 0x8000), (((int32_t)(gamepad::ADC_read(&hadc2) << 4)) - 0x8000)};  //FIXME, ADCが2個である事を前提としている。
-        ADCval[0] = ADCval[0] - ADCcal[0].ADC_center;
-        ADCval[1] = ADCval[1] - ADCcal[1].ADC_center;
-        if (ADCcal[0].ADC_max < ADCval[0])
+        for (int i = 0; i < NUM_of_ADC_12bit; i++)
         {
-            ADCcal[0].ADC_max = ADCval[0];
+            int32_t ADC_val = (int32_t)((ADC_DMA_val[i] << 4)-0x8000) - gamepadHID.axis[i].cal_center;//元のデータが12bitなので、16bitにするために4bitシフト
+            if(ADCmax[i] < ADC_val)
+            {
+                ADCmax[i] = ADC_val;
+            }
+            if(ADCmin[i] > ADC_val)
+            {
+                ADCmin[i] = ADC_val;
+            }
         }
-        if (ADCcal[1].ADC_max < ADCval[1])
-        {
-            ADCcal[1].ADC_max = ADCval[1];
-        }
-        if (ADCcal[0].ADC_min > ADCval[0])
-        {
-            ADCcal[0].ADC_min = ADCval[0];
-        }
-        if (ADCcal[1].ADC_min > ADCval[1])
-        {
-            ADCcal[1].ADC_min = ADCval[1];
-        }
+        #ifdef DEBUG
         printf("\033[2J");
         printf("ADC_val_X: %ld\r\n", ADCval[0]);
         printf("ADC_val_Y: %ld\r\n", ADCval[1]);
@@ -264,27 +254,31 @@ int gamepad::ADCcalibrate()
         printf("ADC_min_X: %ld\r\n", ADCcal[0].ADC_min);
         printf("ADC_max_Y: %ld\r\n", ADCcal[1].ADC_max);
         printf("ADC_min_Y: %ld\r\n", ADCcal[1].ADC_min);
+        #endif //DEBUG
     }
     //最大値と最小値が0のままだった場合、のちの処理で0除算が発生するので、エラーを返す。
-    if (ADCcal[0].ADC_max == 0 || ADCcal[1].ADC_max == 0 || ADCcal[0].ADC_min == 0 || ADCcal[1].ADC_min == 0)
+    for (int i = 0; i < NUM_of_ADC_12bit; i++)
     {
-        fanc_err_status = 1;
-        ADCcal[0].ADC_max = 0x0001;
-        ADCcal[1].ADC_max = 0x0001;
-        ADCcal[0].ADC_min = -0x0001;
-        ADCcal[1].ADC_min = -0x0001;
+        if(ADCmax[i] == 0||ADCmin[i] == 0)
+        {
+            fanc_err_status = 1;
+            ADCmax[i] = 0x0001; //0除算防止のために1を代入
+            ADCmin[i] = -0x0001;
+        }
+    }
+    //ADCの値から補正係数を計算する。
+    for (int i = 0; i < NUM_of_ADC_12bit; i++)
+    {
+        gamepadHID.axis[i].cal_pos_coeficient = 32767.0f / (float)ADCmax[i]; //変換用係数を作る。
+        gamepadHID.axis[i].cal_neg_coeficient = -32768.0f / (float)ADCmin[i];
     }
     //キャリブレーション値を保存する。
-    flash_rom.write(0x08007c00, (uint8_t *)&ADCcal[0], sizeof(ADCcal[0]));
-    flash_rom.write(0x08007c00 + sizeof(ADCcal[0]), (uint8_t *)&ADCcal[1], sizeof(ADCcal[1]));
-
-    printf("\033[2J");
-    printf("ADC_center_X: %ld\r\n", ADCcal[0].ADC_center);
-    printf("ADC_center_Y: %ld\r\n", ADCcal[1].ADC_center);
-    printf("ADC_max_X: %ld\r\n", ADCcal[0].ADC_max);
-    printf("ADC_min_X: %ld\r\n", ADCcal[0].ADC_min);
-    printf("ADC_max_Y: %ld\r\n", ADCcal[1].ADC_max);
-    printf("ADC_min_Y: %ld\r\n", ADCcal[1].ADC_min);
+    for (int i = 0; i < NUM_of_ADC_12bit; i++)
+    {
+        flash_rom.write(0x08007c00 + (sizeof(uint32_t))*3*i, (uint8_t *)&(gamepadHID.axis[i].cal_center), sizeof(uint32_t));
+        flash_rom.write(0x08007c00 + (sizeof(float))*3*i + sizeof(float), (uint8_t *)&(gamepadHID.axis[i].cal_pos_coeficient), sizeof(float));
+        flash_rom.write(0x08007c00 + (sizeof(float))*3*i + sizeof(float)*2, (uint8_t *)&(gamepadHID.axis[i].cal_neg_coeficient), sizeof(float));
+    }
     return fanc_err_status;
 }
 

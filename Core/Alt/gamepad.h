@@ -59,7 +59,7 @@ public:
 
         struct {
             uint16_t value;
-            uint16_t cal_center;
+            uint32_t cal_center;
             float cal_pos_coeficient; //正の方向の補正係数
             float cal_neg_coeficient; //負の方向の補正係数
         } axis[NUM_of_ADC_12bit];
