@@ -31,6 +31,8 @@
 #define CUSTOM_HID_EPIN_SIZE 7
 #endif
 
+//#define DEBUG  //debug用のprintfを有効にするならコメントアウトを外す
+
 /*declaration Grobal Valiable*/
 //ADC_HandleTypeDef hadc1;
 //UART_HandleTypeDef huart1;
@@ -51,17 +53,24 @@ int alt_main(){
     {
         g_gamepad.gamepadHID.buttons[i] = 0;
 	}
-	for (uint8_t i = 0; i < (NUM_of_ADC_12bit * 2); i++)
+	for (uint8_t i = 0; i < (NUM_of_ADC_12bit); i++)
     {
-		g_gamepad.gamepadHID.axis[i] = 0;
+		g_gamepad.gamepadHID.axis[i].value = 0;
     }
 
-      if (HAL_ADCEx_Calibration_Start(&hadc1) !=  HAL_OK)	//ADCを自動でキャリぶれーとしてくれる？
-  {
-    Error_Handler();
-  }
-      HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
-      g_gamepad.Initialize();
+    // F1系はキャリブレーションを一度しておく
+    if(HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
+    {
+        // キャリブレーションエラー処理
+        printf("ADC Calibration Error\r\n");
+        //assert_param(0); //define USE_FULL_ASSERTが有効な場合にエラーを報告
+    }
+    if(g_gamepad.DMA_ADC_Start() != HAL_OK)
+    {
+        printf("ADC DMA Start Error\r\n");
+    }
+
+    g_gamepad.Initialize();
 
 	while(1){
 		/*alt_main loop ここにメイン関数のループを書く。*/
@@ -92,7 +101,7 @@ int alt_main(){
     g_gamepad.readAxis();
     //printf("Read Axis\r\n");
 		/*USB送信*/
-        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &g_gamepad.gamepadHID.buttons[0], CUSTOM_HID_EPIN_SIZE);  //buttonsとaxisを別々に送信して良いのかは怪しい。
+        USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &g_gamepad.USB_HID_Report.buttons[0], CUSTOM_HID_EPIN_SIZE);  //buttonsとaxisを別々に送信して良いのかは怪しい。
     //printf("Send USB\r\n");
 	}
 }

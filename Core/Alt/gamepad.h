@@ -19,20 +19,22 @@
 #define    cbi( addr, bit)       addr &= ~(1 << bit)    // addrのbit目を'0'にする。
 #define    sbi( addr, bit)       addr |= (1 << bit)       // addrのbit目を'1'にする。
 /*------Setting Device Inputs------*/
-#define NUM_of_ADC_12bit 2
-#define NUM_of_Buttons 21
+#define NUM_of_ADC_12bit 4
+#define NUM_of_Buttons 13
 /*------Buffer Size Definite------*/
 #define ADC_CONVERTED_DATA_BUFFER_SIZE	((uint32_t)	NUM_of_ADC_12bit)
-#define BUTTONS_DATA_BUFFER_SIZE (((uint32_t)NUM_of_Buttons / 8)+1)     //FIXME 割り切れる場合は+1しないようにする。(現状は割り切れる場合も+1している。)
-#define GAMEPAD_HID_AXIS_DATA_BUFFER_SIZE (NUM_of_ADC_12bit * 2)        //8bit長に区切ったときのサイズ(8bit*2=16bit=2byte
-#define GAMEPAD_HID_BUTTONS_DATA_BUFFER_SIZE ((NUM_of_Buttons / 8)+1)   //8bit長に区切ったときのサイズ
+#define BUTTONS_DATA_BUFFER_SIZE ((uint32_t)(NUM_of_Buttons + 7) / 8)    //ボタンデータのバッファサイズ。8bit長に区切ったときのサイズ。余りは切り上げる。
+#define GAMEPAD_HID_AXIS_DATA_BUFFER_SIZE (NUM_of_ADC_12bit * 2)        //8bit長に区切ったときのサイズなので2倍(8bit*2=16bit=2byte
+#define GAMEPAD_HID_BUTTONS_DATA_BUFFER_SIZE ((NUM_of_Buttons  + 7) / 8)   //8bit長に区切ったときのサイズ
 /*------ KeyMatrix INPUT and OUTPUT Pin Counts ------*/
 //#define NUM_of_IN 4
 //#define NUM_of_OUT 6  //今回はキーマトリクスを使わないのでコメントアウト
 #ifdef CUSTOM_HID_EPIN_SIZE
 #undef CUSTOM_HID_EPIN_SIZE
-#define CUSTOM_HID_EPIN_SIZE 7      //EPIN_SIZEとは、HIDのデータを送るときの1パケットのサイズ。このサイズは、HIDのディスクリプタで定義されている。この値を変更すると、HIDのディスクリプタも変更する必要がある。gamepadHIDの配列サイズはEPIN_SIZEと同一のサイズである。
+#define CUSTOM_HID_EPIN_SIZE 10      //EPIN_SIZE(エンドポイントサイズ)とは、HIDのデータを送るときの1パケットのサイズ。このサイズは、HIDのディスクリプタで定義されている。この値を変更すると、HIDのディスクリプタも変更する必要がある。gamepadHIDの配列サイズはEPIN_SIZEと同一のサイズである。
 #endif
+
+//ADCキャリブレーション用の設定
 /*------ Flash DATA Adress -------*/
 #define FLASH_DATA_START_ADDR 0x0800FC00
 #define FLASH_DATA_END_ADDR 0x08007FFF
@@ -53,15 +55,31 @@ public:
 
     typedef struct{
         uint8_t     buttons[BUTTONS_DATA_BUFFER_SIZE];
-        uint8_t      axis[NUM_of_ADC_12bit * 2];
-    }gamepadHID_t;
+        // uint16_t      axis[NUM_of_ADC_12bit];
 
+        struct {
+            uint16_t value;
+            uint16_t cal_center;
+            float cal_pos_coeficient; //正の方向の補正係数
+            float cal_neg_coeficient; //負の方向の補正係数
+        } axis[NUM_of_ADC_12bit];
+
+    }gamepadHID_t;//これUSBに送るデータ構造体だった。間違えた。
     gamepadHID_t gamepadHID;
+
+    typedef struct{
+        uint8_t buttons[BUTTONS_DATA_BUFFER_SIZE];
+        uint8_t axis[NUM_of_ADC_12bit * 2]; //8bit長に区切ったときのサイズなので2倍(8bit*2=16bit=2byte
+    }USB_HID_Report_t;
+    USB_HID_Report_t USB_HID_Report;
+
+    uint32_t ADC_DMA_val[NUM_of_ADC_12bit];//DMAで読み取ったADCの値を格納する配列
 
     void readButtons();
     void readAxis();
 
-    void Initialize();  //initializeにも使う
+    void Initialize();
+    HAL_StatusTypeDef DMA_ADC_Start();
 
     int ADCcalibrate();
 

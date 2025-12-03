@@ -8,17 +8,17 @@
 #include "flash_rom.h"
 #include "main.h"
 
-flash_rom::flash_rom()
+Flash_rom::Flash_rom()
 {
     // TODO Auto-generated constructor stub
 }
 
-flash_rom::~flash_rom()
+Flash_rom::~Flash_rom()
 {
     // TODO Auto-generated destructor stub
 }
 
-HAL_StatusTypeDef flash_rom::write(uint32_t address, uint8_t *data, uint32_t size)
+HAL_StatusTypeDef Flash_rom::write(uint32_t address, uint8_t *data, uint32_t size)
 {
 	HAL_StatusTypeDef status = HAL_FLASH_Unlock();
 	if(status == HAL_OK){
@@ -38,7 +38,7 @@ HAL_StatusTypeDef flash_rom::write(uint32_t address, uint8_t *data, uint32_t siz
 	return HAL_OK;
 }
 
-uint32_t flash_rom::read(uint32_t address, uint32_t size)
+uint32_t Flash_rom::read(uint32_t address, uint32_t size)
 {
     uint32_t data = 0;
     for (uint32_t i = 0; i < size; i++)
@@ -48,7 +48,7 @@ uint32_t flash_rom::read(uint32_t address, uint32_t size)
     return data;
 }
 
-void flash_rom::erase(uint32_t address, uint32_t size)
+void Flash_rom::erase(uint32_t address, uint32_t size)
 {
     HAL_FLASH_Unlock();
     FLASH_EraseInitTypeDef EraseInitStruct;
