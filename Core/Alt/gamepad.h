@@ -73,7 +73,7 @@ public:
     }USB_HID_Report_t;
     USB_HID_Report_t USB_HID_Report;
 
-    uint32_t ADC_DMA_val[NUM_of_ADC_12bit];//DMAで読み取ったADCの値を格納する配列
+    uint16_t ADC_DMA_val[NUM_of_ADC_12bit];//DMAで読み取ったADCの値を格納する配列
 
     void readButtons();
     void readAxis();
@@ -84,15 +84,12 @@ public:
     int ADCcalibrate();
 
 private:
-    uint32_t* ADC_FLASH_cal_data;
     typedef struct{
         int32_t ADC_center;
         int32_t ADC_max;
         int32_t ADC_min;
     }ADCcalibrate_t;
-    ADCcalibrate_t ADCcal[NUM_of_ADC_12bit];
 
-    uint32_t ADC_read(ADC_HandleTypeDef *hadc);
     int FLASH_If_Erase(uint32_t StartSector, uint32_t EndSector);
 
 };

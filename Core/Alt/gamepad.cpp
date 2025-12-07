@@ -129,7 +129,7 @@ void gamepad::readButtons()
     //ボタンの論理反転処理。押されたときに1になるようにする。
     button_status = ~button_status;
 //gamepadHIDインスタンスに値を渡す
-    for(int i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
+    for(uint32_t i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
     {
         gamepadHID.buttons[i] = (uint8_t)(button_status >> (i * 8) & 0xFF);
     }
@@ -193,21 +193,7 @@ void gamepad::readAxis() //ADCの値をgamepadHID.axisに格納する関数。AD
             ADC_val_signed_12bit_to_16bit[i] = -0x8000;
         }
     }
-    //ADC_Val[1]は値が反転していたので反転させる
-    //ADC_val[1] = 0xFFFF - ADC_val[1];
 
-    //gamepadHIDインスタンスに値を渡す
-    // gamepadHID.axisをuint16_tに変更したので、以下のコードを修正
-    // //この時渡す値を2つの8bitに分ける
-    // gamepadHID.axis[0] = (int8_t)(ADC_val[0] & 0x000000FF);
-    // gamepadHID.axis[1] = (int8_t)((ADC_val[0] & 0x0000FF00) >> 8);
-    // gamepadHID.axis[2] = (int8_t)(ADC_val[1] & 0x000000FF);
-    // gamepadHID.axis[3] = (int8_t)((ADC_val[1] & 0x0000FF00) >> 8);
-    // HAL_ADC_Stop(&hadc1);
-    // HAL_ADC_Stop(&hadc2);
-    // printf("\033[2J");
-    // printf("ADC1: %lu\r\n", ADC_val[0]);
-    // printf("ADC2: %lu\r\n", ADC_val[1]);
     for (int i = 0; i < NUM_of_ADC_12bit; i++)
     {
         USB_HID_Report.axis[i*2] = (uint8_t)(ADC_val_signed_12bit_to_16bit[i] & 0x00FF);          //下位8bit
@@ -282,15 +268,7 @@ int gamepad::ADCcalibrate()
     return fanc_err_status;
 }
 
-uint32_t gamepad::ADC_read(ADC_HandleTypeDef *hadc) //ADCの値を読む関数。readAxis()とことなり、ADCの値をそのままreturnする。
-{
-    uint32_t ADC_val = 0;
-    HAL_ADC_Start(hadc);
-    HAL_ADC_PollForConversion(hadc, 100);
-    ADC_val = HAL_ADC_GetValue(hadc);
-    HAL_ADC_Stop(hadc);
-    return ADC_val;
-}
+
 void gamepad::Initialize(){
     for (int i = 0; i < NUM_of_ADC_12bit; i++)
     {
