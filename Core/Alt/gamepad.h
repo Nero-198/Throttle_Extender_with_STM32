@@ -73,7 +73,8 @@ public:
     }USB_HID_Report_t;
     USB_HID_Report_t USB_HID_Report;
 
-    uint16_t ADC_DMA_val[NUM_of_ADC_12bit];//DMAで読み取ったADCの値を格納する配列
+    // DMAで書き込まれる値は最適化でキャッシュされると更新が見えなくなるためvolatile指定
+    __IO uint16_t ADC_DMA_val[NUM_of_ADC_12bit];//DMAで読み取ったADCの値を格納する配列
 
     void readButtons();
     void readAxis();

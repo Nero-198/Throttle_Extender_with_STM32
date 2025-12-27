@@ -131,7 +131,7 @@ void gamepad::readButtons()
 //gamepadHIDインスタンスに値を渡す
     for(uint32_t i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
     {
-        gamepadHID.buttons[i] = (uint8_t)(button_status >> (i * 8) & 0xFF);
+        USB_HID_Report.buttons[i] = (uint8_t)(button_status >> (i * 8) & 0xFF);
     }
 
     return;
@@ -143,7 +143,7 @@ void gamepad::readAxis() //ADCの値をgamepadHID.axisに格納する関数。AD
 
     for (int i = 0; i < NUM_of_ADC_12bit; i++)
     {
-        ADC_val_signed_12bit_to_16bit[i] = (int32_t)((ADC_DMA_val[i] << 4)-0x8000); //元のデータが12bitなので、16bitにするために4bitシフト
+        ADC_val_signed_12bit_to_16bit[i] = (int32_t)(ADC_DMA_val[i] << 4); //元のデータが12bitなので、16bitにするために4bitシフト
     }
 
     //calibration値で補正
@@ -163,14 +163,6 @@ void gamepad::readAxis() //ADCの値をgamepadHID.axisに格納する関数。AD
 
     //係数を用いて値を補正する。0より上の値と0より下の値にそれぞれ係数を適応する。//0はそのまま0
     for (int i = 0; i < NUM_of_ADC_12bit; i++){
-        if (ADC_val_signed_12bit_to_16bit[i] > 0)
-        {
-            ADC_val_signed_12bit_to_16bit[i] = (int32_t)(ADC_val_signed_12bit_to_16bit[i] * gamepadHID.axis[i].cal_pos_coeficient);
-        }
-        else
-        {
-            ADC_val_signed_12bit_to_16bit[i] = (int32_t)(ADC_val_signed_12bit_to_16bit[i] * gamepadHID.axis[i].cal_neg_coeficient);
-        }
         if (ADC_val_signed_12bit_to_16bit[i] > 0)
         {
             ADC_val_signed_12bit_to_16bit[i] = (int32_t)(ADC_val_signed_12bit_to_16bit[i] * gamepadHID.axis[i].cal_pos_coeficient);
@@ -220,7 +212,7 @@ int gamepad::ADCcalibrate()
     {
         for (int i = 0; i < NUM_of_ADC_12bit; i++)
         {
-            int32_t ADC_val = (int32_t)((ADC_DMA_val[i] << 4)-0x8000) - gamepadHID.axis[i].cal_center;//元のデータが12bitなので、16bitにするために4bitシフト
+            int32_t ADC_val = (((int32_t)(ADC_DMA_val[i] << 4))) - gamepadHID.axis[i].cal_center;//元のデータが12bitなので、16bitにするために4bitシフト
             if(ADCmax[i] < ADC_val)
             {
                 ADCmax[i] = ADC_val;
