@@ -33,10 +33,10 @@
 
 //#define DEBUG  //debug用のprintfを有効にするならコメントアウトを外す
 //#define USB_SEND_DUMMY_REPORT  // USB疎通確認用のダミーデータ送信を有効にするならコメントアウトを外す
+#define DEBUG_USB_REPORT 1  // USB送信データをUARTに出す
 
 /*declaration Grobal Valiable*/
 //ADC_HandleTypeDef hadc1;
-//UART_HandleTypeDef huart1;
 ADC_ChannelConfTypeDef sConfig;
 
 /*Instance*/
@@ -77,6 +77,21 @@ static void SendDummyHidReport(void)
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, dummyReport, CUSTOM_HID_EPIN_SIZE);
 }
 #endif
+
+static void DebugPrintHidReport(const uint8_t *data, uint16_t len)
+{
+#if DEBUG_USB_REPORT
+    printf("USB HID Report (%u bytes):", len);
+    for (uint16_t i = 0; i < len; i++)
+    {
+        printf(" %02X", data[i]);
+    }
+    printf("\r\n");
+#else
+    (void)data;
+    (void)len;
+#endif
+}
 
 
 int alt_main(){
@@ -120,7 +135,7 @@ int alt_main(){
     printf("\033[10A");
     printf("Value: %x\r\n", g_gamepad.gamepadHID.buttons[0]);
 
-    
+
     printf("Value: %x\r\n", g_gamepad.gamepadHID.buttons[1]);
     printf("Value: %x\r\n", g_gamepad.gamepadHID.buttons[2]);
     printf("Value: %d\r\n", g_gamepad.gamepadHID.axis[0]);
@@ -142,11 +157,13 @@ int alt_main(){
     //printf("Read Buttons\r\n");
     g_gamepad.readAxis();
     //printf("Read Axis\r\n");
-		/*USB送信*/
-        if(USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &g_gamepad.USB_HID_Report.buttons[0], CUSTOM_HID_EPIN_SIZE) != USBD_OK){
-            printf("USB Send Error\r\n");
-        }  //buttonsとaxisを別々に送信して良いのかは怪しい。
-    //printf("Send USB\r\n");
+        /*USB送信*/
+        UART_puts("Sending USB HID Report\r\n");
+        DebugPrintHidReport(&g_gamepad.USB_HID_Report.buttons[0], CUSTOM_HID_EPIN_SIZE);
+            if(USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &g_gamepad.USB_HID_Report.buttons[0], CUSTOM_HID_EPIN_SIZE) != USBD_OK){
+                // BUSY/FAILの時は次フレームで再送。過度な連続送信でハングするのを防ぐ。
+            }
+        HAL_Delay(1); // 1ms程度待ち、USBフレーム間隔に合わせて送信を間引く
 	}
 }
 
