@@ -162,16 +162,6 @@ void gamepad::readAxis() //ADCの値をgamepadHID.axisに格納する関数。AD
     {
         ADC_val_signed_12bit_to_16bit[i] = ADC_val_signed_12bit_to_16bit[i] - gamepadHID.axis[i].cal_center; //この処理で中心値を0にする
     }
-    
-
-    //calibration値で補正
-    // ADC_val_signed[0] = ADC_val_signed[0] - ADCcal[0].ADC_center;
-    // ADC_val_signed[1] = ADC_val_signed[1] - ADCcal[1].ADC_center;
-    // float ADC_calibrate_coeficient_X_max = 0x7FFF / (float)ADCcal[0].ADC_max; //変換用係数を作る。//floatじゃないとダメ
-    // float ADC_calibrate_coeficient_X_min = -0x8000 / (float)ADCcal[0].ADC_min;
-    // float ADC_calibrate_coeficient_Y_max = 0x7FFF / (float)ADCcal[1].ADC_max;
-    // float ADC_calibrate_coeficient_Y_min = -0x8000 / (float)ADCcal[1].ADC_min;
-
     //係数を用いて値を補正する。0より上の値と0より下の値にそれぞれ係数を適応する。//0はそのまま0
     for (int i = 0; i < NUM_of_ADC_12bit; i++){
         if (ADC_val_signed_12bit_to_16bit[i] > 0)
@@ -203,6 +193,70 @@ void gamepad::readAxis() //ADCの値をgamepadHID.axisに格納する関数。AD
         USB_HID_Report.axis[i*2 + 1] = (uint8_t)((ADC_val_signed_12bit_to_16bit[i] & 0xFF00) >> 8);   //上位8bit
     }
     return;
+}
+
+void gamepad::Axis_to_TDC_buttons()
+{
+    //TDC UP/DOWN/LEFT/RIGHT ボタンの状態を軸の値から決定してgamepadHID.buttonにセットする関数
+    //閾値は±6000とする。
+
+    const int16_t threshold = 20000;
+
+    auto read_axis = [](const uint8_t *axis_bytes) -> int16_t {
+        return static_cast<int16_t>(
+            static_cast<uint16_t>(axis_bytes[0]) |
+            (static_cast<uint16_t>(axis_bytes[1]) << 8));
+    };
+
+    const int16_t tdc1_x = read_axis(&USB_HID_Report.axis[0]);
+    const int16_t tdc1_y = read_axis(&USB_HID_Report.axis[2]);
+    const int16_t tdc2_x = read_axis(&USB_HID_Report.axis[4]);
+    const int16_t tdc2_y = read_axis(&USB_HID_Report.axis[6]);
+
+    uint8_t button1 = USB_HID_Report.buttons[1];
+    uint8_t button2 = USB_HID_Report.buttons[2];
+
+    button1 &= static_cast<uint8_t>(~((1U << 5) | (1U << 6) | (1U << 7)));
+    button2 &= static_cast<uint8_t>(~((1U << 0) | (1U << 1) | (1U << 2) | (1U << 3) | (1U << 4)));
+
+    if (tdc1_x > threshold)
+    {
+        button1 |= (1U << 7); // TDC_RIGHT
+    }
+    else if (tdc1_x < -threshold)
+    {
+        button2 |= (1U << 0); // TDC_LEFT
+    }
+
+    if (tdc1_y > threshold)
+    {
+        button1 |= (1U << 5); // TDC_UP
+    }
+    else if (tdc1_y < -threshold)
+    {
+        button1 |= (1U << 6); // TDC_DOWN
+    }
+
+    if (tdc2_x > threshold)
+    {
+        button2 |= (1U << 3); // TDC2_RIGHT
+    }
+    else if (tdc2_x < -threshold)
+    {
+        button2 |= (1U << 4); // TDC2_LEFT
+    }
+
+    if (tdc2_y > threshold)
+    {
+        button2 |= (1U << 1); // TDC2_UP
+    }
+    else if (tdc2_y < -threshold)
+    {
+        button2 |= (1U << 2); // TDC2_DOWN
+    }
+
+    USB_HID_Report.buttons[1] = button1;
+    USB_HID_Report.buttons[2] = button2;
 }
 
 int gamepad::ADCcalibrate()

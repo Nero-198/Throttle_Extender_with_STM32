@@ -79,6 +79,8 @@ public:
     void readButtons();
     void readAxis();
 
+    void Axis_to_TDC_buttons(); // 軸の値からTDCボタンの状態を決定してgamepadHID.buttonにセットする関数
+
     void Initialize();
     HAL_StatusTypeDef DMA_ADC_Start();
 

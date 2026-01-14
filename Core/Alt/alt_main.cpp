@@ -157,6 +157,7 @@ int alt_main(){
     //printf("Read Buttons\r\n");
     g_gamepad.readAxis();
     //printf("Read Axis\r\n");
+    g_gamepad.Axis_to_TDC_buttons();
         /*USB送信*/
         UART_puts("Sending USB HID Report\r\n");
         DebugPrintHidReport(&g_gamepad.USB_HID_Report.buttons[0], CUSTOM_HID_EPIN_SIZE);
