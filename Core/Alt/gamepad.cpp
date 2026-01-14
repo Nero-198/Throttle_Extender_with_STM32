@@ -58,17 +58,18 @@ PA3     TDC2_Y
 
 	7	            6	                5	                    4                   3	                    2                   1	                0
 0	BRK_RET(PB0)	SLIDER_DOWN(PB3)	SLIDER_HALF_DOWN(PB4)   SLIDER_PUSH(PB5)    SLIDER_HALF_UP(PB6) 	SLIDER_UP(PB7)      TDC2_PUSH(PA5)	    TDC1_PUSH(PA4)      gamepadHID.button[0]
-1	PADDING     	PADDING	            PADDING     	        PINKY_FWD(PB13)     PINKY_AFT(PB12)         MISSILE(PB11)       DOGFIGHT(PB10)      BRK_EXT(PB1) 	    gamepadHID.button[1]
-2								                                                                                                                    TDC1_X              gamepadHID.axis[0]
-3									                                                                                                                                    gamepadHID.axis[1]
-4								                                                                                                                    TDC1_Y	            gamepadHID.axis[2]
-5									                                                                                                                                    gamepadHID.axis[3]
-6								                                                                                                                    TDC2_X	            gamepadHID.axis[4]
-7									                                                                                                                                    gamepadHID.axis[5]
-8								                                                                                                                    TDC2_Y	            gamepadHID.axis[6]
-9									                                                                                                                                    gamepadHID.axis[7]
+1   TDC_RIGHT     	TDC_DOWN	            TDC_UP     	        PINKY_FWD(PB13)     PINKY_AFT(PB12)         MISSILE(PB11)       DOGFIGHT(PB10)      BRK_EXT(PB1) 	    gamepadHID.button[1]
+2	PADDING     	PADDING	            PADDING     	        TDC2_LEFT           TDC2_RIGHT              TDC2_DOWN           TDC2_UP             TDC_LEFT     	    gamepadHID.button[1]
+3								                                                                                                                    TDC1_X              gamepadHID.axis[0]
+4									                                                                                                                                    gamepadHID.axis[1]
+5								                                                                                                                    TDC1_Y	            gamepadHID.axis[2]
+6									                                                                                                                                    gamepadHID.axis[3]
+7								                                                                                                                    TDC2_X	            gamepadHID.axis[4]
+8									                                                                                                                                    gamepadHID.axis[5]
+9								                                                                                                                    TDC2_Y	            gamepadHID.axis[6]
+10									                                                                                                                                    gamepadHID.axis[7]
 
-USBD_EPIN_SIZE = 10byte
+USBD_EPIN_SIZE = 11byte
 
 ---GPIO - HID button num 対応付け---
 gamepadHID.button[0] bits (LSB→MSB):
@@ -88,6 +89,16 @@ bit1: DOGFIGHT (PB10)
 bit2: MISSILE (PB11)
 bit3: PINKY_AFT (PB12)
 bit4: PINKY_FWD (PB13)
+bit5: TDC_UP
+bit6: TDC_DOWN
+bit7: TDC_RIGHT
+
+gamepadHID.button[2] bits (LSB→MSB):
+bit0: TDC_LEFT
+bit1: TDC2_UP
+bit2: TDC2_DOWN
+bit3: TDC2_RIGHT
+bit4: TDC2_LEFT
 bit5: PADDING
 bit6: PADDING
 bit7: PADDING

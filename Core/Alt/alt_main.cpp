@@ -28,7 +28,7 @@
 
 #ifdef CUSTOM_HID_EPIN_SIZE
 #undef CUSTOM_HID_EPIN_SIZE
-#define CUSTOM_HID_EPIN_SIZE 10
+#define CUSTOM_HID_EPIN_SIZE 11 //byte
 #endif
 
 //#define DEBUG  //debug用のprintfを有効にするならコメントアウトを外す
