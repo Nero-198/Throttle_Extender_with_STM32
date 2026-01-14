@@ -19,13 +19,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "alt_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,8 +90,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
-  MX_ADC2_Init();
   MX_USART1_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
@@ -101,6 +102,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    alt_main();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

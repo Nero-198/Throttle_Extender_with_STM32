@@ -1,0 +1,48 @@
+# Build artifacts
+/build/
+/Debug/
+/Release/
+/DebugSize/
+/*.elf
+/*.map
+/*.bin
+/*.hex
+/*.lst
+/*.o
+/*.d
+/*.su
+/*.cyclo
+
+# CMake intermediate files
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/*.ninja
+/.ninja_deps
+/.ninja_log
+/compile_commands.json
+/.cmake/
+/cmake-test/
+
+# IDE/tooling generated files
+/.vscode/
+/.settings/
+/.project
+/.cproject
+/.mxproject
+/*.launch
+/targets
+/transport
+
+# Local tools/bundles (e.g., xpack openocd)
+/tools/
+/tools/**
+
+# CubeIDE/STM32Cube generated debug listings
+/Debug/**
+
+
+debug_with_optimaze_for_TEwS/Core/
+debug_with_optimaze_for_TEwS/Drivers/
+debug_with_optimaze_for_TEwS/Middlewares/
+debug_with_optimaze_for_TEwS/USB_Device/

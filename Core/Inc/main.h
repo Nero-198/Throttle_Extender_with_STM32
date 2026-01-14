@@ -67,8 +67,8 @@ void Error_Handler(void);
 #define TDC2_X_GPIO_Port GPIOA
 #define TDC2_Y_Pin GPIO_PIN_3
 #define TDC2_Y_GPIO_Port GPIOA
-#define TDC_PUSH_Pin GPIO_PIN_4
-#define TDC_PUSH_GPIO_Port GPIOA
+#define TDC1_PUSH_Pin GPIO_PIN_4
+#define TDC1_PUSH_GPIO_Port GPIOA
 #define TDC2_PUSH_Pin GPIO_PIN_5
 #define TDC2_PUSH_GPIO_Port GPIOA
 #define BRK_RET_Pin GPIO_PIN_0

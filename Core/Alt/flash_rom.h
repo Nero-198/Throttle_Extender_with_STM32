@@ -11,11 +11,11 @@
 #include "main.h"
 #include "alt_main.h"
 
-class flash_rom
+class Flash_rom
 {
 public:
-    flash_rom();
-    ~flash_rom();
+    Flash_rom();
+    ~Flash_rom();
 
     HAL_StatusTypeDef write(uint32_t address, uint8_t *data, uint32_t size);
     uint32_t read(uint32_t address, uint32_t size);
