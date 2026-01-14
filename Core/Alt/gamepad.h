@@ -20,7 +20,7 @@
 #define    sbi( addr, bit)       addr |= (1 << bit)       // addrのbit目を'1'にする。
 /*------Setting Device Inputs------*/
 #define NUM_of_ADC_12bit 4
-#define NUM_of_Buttons 13
+#define NUM_of_Buttons 21
 /*------Buffer Size Definite------*/
 #define ADC_CONVERTED_DATA_BUFFER_SIZE	((uint32_t)	NUM_of_ADC_12bit)
 #define BUTTONS_DATA_BUFFER_SIZE ((uint32_t)(NUM_of_Buttons + 7) / 8)    //ボタンデータのバッファサイズ。8bit長に区切ったときのサイズ。余りは切り上げる。
@@ -31,7 +31,7 @@
 //#define NUM_of_OUT 6  //今回はキーマトリクスを使わないのでコメントアウト
 #ifdef CUSTOM_HID_EPIN_SIZE
 #undef CUSTOM_HID_EPIN_SIZE
-#define CUSTOM_HID_EPIN_SIZE 10      //EPIN_SIZE(エンドポイントサイズ)とは、HIDのデータを送るときの1パケットのサイズ。このサイズは、HIDのディスクリプタで定義されている。この値を変更すると、HIDのディスクリプタも変更する必要がある。gamepadHIDの配列サイズはEPIN_SIZEと同一のサイズである。
+#define CUSTOM_HID_EPIN_SIZE 11      //EPIN_SIZE(エンドポイントサイズ)とは、HIDのデータを送るときの1パケットのサイズ。このサイズは、HIDのディスクリプタで定義されている。この値を変更すると、HIDのディスクリプタも変更する必要がある。gamepadHIDの配列サイズはEPIN_SIZEと同一のサイズである。
 #endif
 
 //ADCキャリブレーション用の設定
@@ -78,6 +78,8 @@ public:
 
     void readButtons();
     void readAxis();
+
+    void Axis_to_TDC_buttons(); // 軸の値からTDCボタンの状態を決定してgamepadHID.buttonにセットする関数
 
     void Initialize();
     HAL_StatusTypeDef DMA_ADC_Start();
