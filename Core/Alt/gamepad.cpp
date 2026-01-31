@@ -99,9 +99,9 @@ bit1: TDC2_UP
 bit2: TDC2_DOWN
 bit3: TDC2_RIGHT
 bit4: TDC2_LEFT
-bit5: PADDING
-bit6: PADDING
-bit7: PADDING
+bit5: BRK_MIDDLE
+bit6: MSL_MIDDLE
+bit7: PINKY_MIDDLE
 
 軸 (gamepadHID.axis の 16bit扱いなら [lo,hi] の順で 2バイトずつ):
 axis[0..1]: TDC1_X (PA0)
@@ -139,6 +139,25 @@ void gamepad::readButtons()
 
     //ボタンの論理反転処理。押されたときに1になるようにする。
     button_status = ~button_status;
+
+    //3-wayスイッチ等の中間値ボタンはここで処理する。
+    //ここではBRK_MIDDLE, MSL_MIDDLE, PINKY_MIDDLEを処理する。
+    //BRK_MIDDLE
+    if (((GPIOB_temp & (1U << 2)) == 0) && ((button_status & (1U << 7)) != 0) && ((button_status & (1U << 8)) != 0))
+    {
+        button_status |= (1U << 21); // BRK_MIDDLE -> bit21
+    }
+    //MSL_MIDDLE
+    if (((GPIOB_temp & (1U << 9)) == 0) && ((button_status & (1U << 9)) != 0) && ((button_status & (1U << 10)) != 0))
+    {
+        button_status |= (1U << 22); // MSL_MIDDLE -> bit22
+    }
+    //PINKY_MIDDLE
+    if (((GPIOB_temp & (1U << 14)) == 0) && ((button_status & (1U << 11)) != 0) && ((button_status & (1U << 12)) != 0))
+    {
+        button_status |= (1U << 23); // PINKY_MIDDLE -> bit23
+    }
+
 //gamepadHIDインスタンスに値を渡す
     for(uint32_t i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
     {
