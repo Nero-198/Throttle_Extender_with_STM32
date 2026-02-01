@@ -99,9 +99,9 @@ bit1: TDC2_UP
 bit2: TDC2_DOWN
 bit3: TDC2_RIGHT
 bit4: TDC2_LEFT
-bit5: PADDING
-bit6: PADDING
-bit7: PADDING
+bit5: BRK_MIDDLE
+bit6: MSL_MIDDLE
+bit7: PINKY_MIDDLE
 
 軸 (gamepadHID.axis の 16bit扱いなら [lo,hi] の順で 2バイトずつ):
 axis[0..1]: TDC1_X (PA0)
@@ -114,7 +114,7 @@ void gamepad::readButtons()
 {
     uint32_t GPIOA_temp = 0;
     uint32_t GPIOB_temp = 0;
-    uint32_t button_status = 0;
+    volatile uint32_t button_status = 0;
     GPIOA_temp = GPIOA->IDR;
     GPIOB_temp = GPIOB->IDR;
 
@@ -137,8 +137,29 @@ void gamepad::readButtons()
     button_status |= READ_BIT_AND_PLACE(GPIOB_temp, 12, 11); // PINKY_AFT(PB12) -> bit11
     button_status |= READ_BIT_AND_PLACE(GPIOB_temp, 13, 12); // PINKY_FWD(PB13) -> bit12
 
+    //3-wayスイッチ等の中間値ボタンはここで処理する。
+    //ここではBRK_MIDDLE, MSL_MIDDLE, PINKY_MIDDLEを処理する。
+    //BRK_MIDDLE
+    if (((button_status & (1U << 7)) == 0) || ((button_status & (1U << 8)) == 0))
+    {
+        button_status |= (1U << 21); // BRK_MIDDLE -> bit21
+    }
+    //MSL_MIDDLE
+    if (((button_status & (1U << 9)) == 0) || ((button_status & (1U << 10)) == 0))
+    {
+        button_status |= (1U << 22); // MSL_MIDDLE -> bit22
+    }
+    //PINKY_MIDDLE
+    if (((button_status & (1U << 11)) == 0) || ((button_status & (1U << 12)) == 0))
+    {
+        button_status |= (1U << 23); // PINKY_MIDDLE -> bit23
+    }
+
     //ボタンの論理反転処理。押されたときに1になるようにする。
     button_status = ~button_status;
+    // Keep only the 24 button bits; avoid upper bits leaking into the report.
+    button_status &= 0x00FFFFFF;
+
 //gamepadHIDインスタンスに値を渡す
     for(uint32_t i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
     {

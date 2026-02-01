@@ -20,7 +20,7 @@
 #define    sbi( addr, bit)       addr |= (1 << bit)       // addrのbit目を'1'にする。
 /*------Setting Device Inputs------*/
 #define NUM_of_ADC_12bit 4
-#define NUM_of_Buttons 21
+#define NUM_of_Buttons 24
 /*------Buffer Size Definite------*/
 #define ADC_CONVERTED_DATA_BUFFER_SIZE	((uint32_t)	NUM_of_ADC_12bit)
 #define BUTTONS_DATA_BUFFER_SIZE ((uint32_t)(NUM_of_Buttons + 7) / 8)    //ボタンデータのバッファサイズ。8bit長に区切ったときのサイズ。余りは切り上げる。
