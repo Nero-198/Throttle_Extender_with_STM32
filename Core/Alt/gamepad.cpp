@@ -114,7 +114,7 @@ void gamepad::readButtons()
 {
     uint32_t GPIOA_temp = 0;
     uint32_t GPIOB_temp = 0;
-    uint32_t button_status = 0;
+    volatile uint32_t button_status = 0;
     GPIOA_temp = GPIOA->IDR;
     GPIOB_temp = GPIOB->IDR;
 
@@ -137,26 +137,28 @@ void gamepad::readButtons()
     button_status |= READ_BIT_AND_PLACE(GPIOB_temp, 12, 11); // PINKY_AFT(PB12) -> bit11
     button_status |= READ_BIT_AND_PLACE(GPIOB_temp, 13, 12); // PINKY_FWD(PB13) -> bit12
 
-    //ボタンの論理反転処理。押されたときに1になるようにする。
-    button_status = ~button_status;
-
     //3-wayスイッチ等の中間値ボタンはここで処理する。
     //ここではBRK_MIDDLE, MSL_MIDDLE, PINKY_MIDDLEを処理する。
     //BRK_MIDDLE
-    if (((GPIOB_temp & (1U << 2)) == 0) && ((button_status & (1U << 7)) != 0) && ((button_status & (1U << 8)) != 0))
+    if (((button_status & (1U << 7)) == 0) || ((button_status & (1U << 8)) == 0))
     {
         button_status |= (1U << 21); // BRK_MIDDLE -> bit21
     }
     //MSL_MIDDLE
-    if (((GPIOB_temp & (1U << 9)) == 0) && ((button_status & (1U << 9)) != 0) && ((button_status & (1U << 10)) != 0))
+    if (((button_status & (1U << 9)) == 0) || ((button_status & (1U << 10)) == 0))
     {
         button_status |= (1U << 22); // MSL_MIDDLE -> bit22
     }
     //PINKY_MIDDLE
-    if (((GPIOB_temp & (1U << 14)) == 0) && ((button_status & (1U << 11)) != 0) && ((button_status & (1U << 12)) != 0))
+    if (((button_status & (1U << 11)) == 0) || ((button_status & (1U << 12)) == 0))
     {
         button_status |= (1U << 23); // PINKY_MIDDLE -> bit23
     }
+
+    //ボタンの論理反転処理。押されたときに1になるようにする。
+    button_status = ~button_status;
+    // Keep only the 24 button bits; avoid upper bits leaking into the report.
+    button_status &= 0x00FFFFFF;
 
 //gamepadHIDインスタンスに値を渡す
     for(uint32_t i = 0; i < BUTTONS_DATA_BUFFER_SIZE; i++)
